@@ -1,5 +1,6 @@
 public class Car implements Runnable {
     private static int CARS_COUNT;
+
     static {
         CARS_COUNT = 0;
     }
@@ -23,12 +24,20 @@ public class Car implements Runnable {
         try {
             System.out.println(this.name + " готовится");
             Thread.sleep(500 + (int)(Math.random() * 800));
+            MainClass.prepareStartRace.countDown();
             System.out.println(this.name + " готов");
+            MainClass.prepareStartRace.await();
+            MainClass.startRace.await();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         for (int i = 0; i < race.getStages().size(); i++) {
             race.getStages().get(i).go(this);
+        }
+        MainClass.finalRace.countDown();
+        if(MainClass.hasWinner.tryLock()) {
+            System.out.println(this.name +" - WIN");
         }
     }
 }
